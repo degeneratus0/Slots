@@ -1,18 +1,14 @@
-﻿using System.ComponentModel;
-
-namespace Slots.Data
+﻿namespace Slots.Data
 {
     public static class Settings
     {
-        public const int n = 5;
-        public const int m = 3;
         public const int BigWinX = 20;
         public const double DefaultScore = 1000;
 
         public static bool IsAutoplay = false;
         public static int AutoplaySpins = 0;
 
-        private static int spinSpeed = 10;
+        private static int spinSpeed = 50;
         public static int SpinSpeed
         {
             get
@@ -22,9 +18,11 @@ namespace Slots.Data
             set
             {
                 spinSpeed = value;
-                ConsoleUtils.TextSpeed = spinSpeed / 3;
+                TextSpeed = spinSpeed / 10;
             }
         }
+        public static int TextSpeed = spinSpeed / 10;
+
         public static int Bet = 10;
     }
 }

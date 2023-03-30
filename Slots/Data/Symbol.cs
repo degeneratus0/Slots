@@ -1,4 +1,4 @@
-﻿namespace Slots
+﻿namespace Slots.Data
 {
     [Serializable()]
     public class Symbol

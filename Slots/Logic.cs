@@ -1,27 +1,34 @@
 ﻿using Slots.Data;
+using System.Drawing;
 
 namespace Slots
 {
     public class Logic
     {
 
-        public static List<(int, int)> WinCells = new List<(int, int)>();
-        public static int WinningLinesCount = 0;
+        public static List<Point> WinCells = new List<Point>();
         public static List<WinData> CurrentWinData;
 
-        public static void AddScore(double score)
+        public static Symbol[,] FillBoard(int Width, int Height)
         {
-            Statistics.CurrentStats.Score += score;
+            Symbol[,] board = new Symbol[Width, Height];
+            for (int i = 0; i < Width; i++)
+            {
+                for (int j = 0; j < Height; j++)
+                {
+                    board[i, j] = GetRandomSymbol();
+                }
+            }
+            return board;
         }
 
         public static double CheckScore(Symbol[,] board)
         {
             CurrentWinData = new List<WinData>();
-            WinningLinesCount = 0;
             double currentScore = 0;
             double resultScore = 0;
 
-            foreach (int[] line in Common.CustomLines)
+            foreach (List<int> line in SlotInfo.Lines)
             {
                 currentScore += CheckLine(line, board);
             }
@@ -31,6 +38,7 @@ namespace Slots
                 currentScore = Math.Round(currentScore, 2);
                 resultScore = currentScore;
                 CurrentWinData = CurrentWinData.OrderByDescending(x => x.Symbol.Value * x.SymbolCount).ToList();
+
                 Statistics.CurrentStats.LastWin = resultScore;
                 Statistics.CurrentStats.LastWinSymbols = CurrentWinData;
                 if (resultScore >= Settings.Bet * Settings.BigWinX)
@@ -48,68 +56,78 @@ namespace Slots
             return resultScore;
         }
 
-        public static Symbol[,] FillBoard(int n, int m)
+        private static double CheckLine(List<int> lineRows, Symbol[,] board)
         {
-            Symbol[,] board = new Symbol[n, m];
-            for (int i = 0; i < n; i++)
+            List<Point> winLine = new List<Point>();
+            List<Point> wildWinLine = new List<Point>();
+            Symbol currentSymbol = board[0, lineRows.First()];
+            winLine.Add(new Point(0, lineRows.First()));
+            for (int i = 1; i < SlotInfo.Width; i++)
             {
-                for (int j = 0; j < m; j++)
+                Symbol followingSymbol = board[i, lineRows[i]];
+                if (currentSymbol == SlotInfo.WildSymbol)
                 {
-                    board[i, j] = GetRandomSymbol();
+                    currentSymbol = followingSymbol;
                 }
-            }
-            return board;
-        }
-
-        private static double CheckLine(int[] rows, Symbol[,] board)
-        {
-            List<(int, int)> winLine = new List<(int, int)>();
-            int count = 0;
-            Symbol currentSymbol = board[0, rows[0]];
-            winLine.Add((0, rows[0]));
-            for (int i = 1; i < Settings.n; i++)
-            {
-                Symbol boardSymbol = board[i, rows[i]];
-                if (currentSymbol == Common.WildSymbol)
+                else if (currentSymbol == followingSymbol || followingSymbol == SlotInfo.WildSymbol)
                 {
-                    count++;
-                    currentSymbol = boardSymbol;
-                    winLine.Add((i, rows[i]));
-                    continue;
-                }
-                if (currentSymbol == boardSymbol || boardSymbol == Common.WildSymbol)
-                {
-                    count++;
+                    currentSymbol = followingSymbol == SlotInfo.WildSymbol ? currentSymbol : followingSymbol;
                 }
                 else
                 {
                     break;
                 }
-                winLine.Add((i, rows[i]));
-                currentSymbol = boardSymbol == Common.WildSymbol ? currentSymbol : boardSymbol;
+
+                winLine.Add(new Point(i, lineRows[i]));
+
+                if (currentSymbol == SlotInfo.WildSymbol && (winLine.Count == 3 || winLine.Count == 4))
+                {
+                    wildWinLine = new List<Point>(winLine);
+                }
             }
-            if (count > 1)
+            if (winLine.Count >= 3)
             {
-                WinCells.AddRange(winLine);
-                WinningLinesCount++;
-                WinData currentLine = new WinData(currentSymbol, count);
-                if (CurrentWinData.Any(x => x.Symbol.Character == currentLine.Symbol.Character && x.SymbolCount == currentLine.SymbolCount))
+                double result = HandleWinLine(winLine, currentSymbol);
+
+                if (wildWinLine.Any())
                 {
-                    int index = CurrentWinData.FindIndex(x => x.Symbol.Character == currentLine.Symbol.Character && x.SymbolCount == currentLine.SymbolCount);
-                    CurrentWinData[index].LineCount++;
+                    result += HandleWinLine(wildWinLine, SlotInfo.WildSymbol);
                 }
-                else
-                {
-                    CurrentWinData.Add(currentLine);
-                }
-                return CountPayment(count, currentSymbol);
+
+                return result;
             }
             return 0;
         }
 
-        private static double CountPayment(int count, Symbol symbol)
+        private static double HandleWinLine(List<Point> winLine, Symbol symbol)
         {
-            return symbol.Value * Math.Pow(count, 2) * Settings.Bet * count / 2;
+            WinCells.AddRange(winLine);
+            WinData currentLineWinData = new WinData(symbol, winLine.Count);
+            if (CurrentWinData.Any(x => x.Symbol == currentLineWinData.Symbol && x.SymbolCount == currentLineWinData.SymbolCount))
+            {
+                int index = CurrentWinData.FindIndex(x => x.Symbol == currentLineWinData.Symbol && x.SymbolCount == currentLineWinData.SymbolCount);
+                CurrentWinData[index].LineCount++;
+            }
+            else
+            {
+                CurrentWinData.Add(currentLineWinData);
+            }
+            return CountPayment(winLine.Count, symbol.Value);
+        }
+
+        public static double CountPayment(int count, double symbolValue)
+        {
+            double result = symbolValue * Settings.Bet;
+            switch (count)
+            {
+                case 4:
+                    result *= 2;
+                    break;
+                case 5:
+                    result *= 5;
+                    break;
+            }
+            return result;
         }
 
         private static Symbol GetRandomSymbol()
@@ -117,7 +135,7 @@ namespace Slots
             Random random = new Random();
             int randomNumber = random.Next(Symbol.TotalWeight);
             Symbol resultSymbol = null;
-            foreach (Symbol symbol in Common.Symbols)
+            foreach (Symbol symbol in SlotInfo.Symbols)
             {
                 if (randomNumber < symbol.Weight)
                 {

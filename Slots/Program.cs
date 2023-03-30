@@ -8,7 +8,7 @@ namespace Slots
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnExit);
             Console.Clear();
-            Console.WriteLine("Press any key to start spinning!");
+            ConsoleUtils.PrintLine("Press any key to start spinning!");
             Console.ReadKey(true);
             Console.Clear();
             while (true)
@@ -17,7 +17,7 @@ namespace Slots
             }
         }
 
-        static void OnExit(object sender, EventArgs e)
+        static void OnExit(object? sender, EventArgs e)
         {
             Statistics.SaveStat();
         }

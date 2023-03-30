@@ -62,18 +62,6 @@ namespace Slots.Data
             Console.WriteLine();
         }
 
-        private static void PrintSymbolLine(Symbol symbol, int count)
-        {
-            for (int i = 0; i <= count; i++)
-            {
-                Console.ForegroundColor = symbol.Color;
-                Console.BackgroundColor = symbol.BackgroundColor;
-                Console.Write($"{symbol.Character}");
-                Console.ResetColor();
-                Console.Write($" ");
-            }
-        }
-
         private static void PrintWinData(string text, List<WinData> datas)
         {
             if (!datas.Any())
@@ -95,19 +83,17 @@ namespace Slots.Data
             }
             Console.WriteLine();
         }
-    }
 
-    [Serializable()]
-    public class WinData
-    {
-        public Symbol Symbol;
-        public int SymbolCount = 0;
-        public int LineCount = 1;
-
-        public WinData(Symbol symbol, int symbolCount)
+        private static void PrintSymbolLine(Symbol symbol, int count)
         {
-            Symbol = symbol;
-            SymbolCount = symbolCount;
+            for (int i = 0; i < count; i++)
+            {
+                Console.ForegroundColor = symbol.Color;
+                Console.BackgroundColor = symbol.BackgroundColor;
+                Console.Write($"{symbol.Character}");
+                Console.ResetColor();
+                Console.Write($" ");
+            }
         }
     }
 }
