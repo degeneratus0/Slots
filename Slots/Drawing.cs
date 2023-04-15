@@ -140,6 +140,7 @@ namespace Slots
                 ConsoleUtils.PrintLine($"S to change spin speed (current: {Settings.SpinSpeed})");
                 ConsoleUtils.PrintLine("A for autoplay");
                 ConsoleUtils.PrintLine("I to show info");
+                ConsoleUtils.PrintLine("Q to clear statistics");
                 ConsoleUtils.PrintLine("Esc to exit");
             }
             else

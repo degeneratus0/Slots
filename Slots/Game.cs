@@ -118,6 +118,12 @@ namespace Slots
                     Drawing.DrawEverything();
                     GetInput();
                     break;
+                case ConsoleKey.Q:
+                    Statistics.EraseStat();
+                    ConsoleUtils.PrintLine("Statistics erased");
+                    ConsoleUtils.PrintLine("Press any key to spin");
+                    Console.ReadKey();
+                    break;
                 case ConsoleKey.Escape:
                     Environment.Exit(0);
                     break;

@@ -43,6 +43,15 @@ namespace Slots.Data
             saveFileStream.Close();
         }
 
+        public static void EraseStat()
+        {
+            if (File.Exists(FileName))
+            {
+                File.Delete(FileName);
+            }
+            CurrentStats = new Statistics();
+        }
+
         public static void PrintStat(Statistics statistics)
         {
             Console.WriteLine();
